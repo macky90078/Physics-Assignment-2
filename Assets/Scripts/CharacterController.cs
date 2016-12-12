@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEditor.SceneManagement;
 
 public class CharacterController : MonoBehaviour {
 
@@ -10,6 +11,7 @@ public class CharacterController : MonoBehaviour {
 
     public Vector3 m_checkVelocity;
 
+    private int m_currentScene;
     private float m_flatVelocity;
     private float m_grav;
     private float m_horizontal;
@@ -22,17 +24,20 @@ public class CharacterController : MonoBehaviour {
     }
 
     // Use this for initialization
-    void Start () {
+    void Start ()
+    {
+        m_currentScene = EditorSceneManager.GetActiveScene().buildIndex;
 		m_rb = GetComponent<Rigidbody> ();
         m_grav = Physics.gravity.magnitude;
-
 	}
 
     // Update is called once per frame
-    void Update () {
+    void Update ()
+    {
 
 		m_horizontal = Input.GetAxis ("Horizontal");
         m_isJumping = Input.GetKeyDown(KeyCode.Space);
+        checkForDeathOrReset();
 	}
 
     void FixedUpdate()
@@ -48,6 +53,10 @@ public class CharacterController : MonoBehaviour {
         {
             m_material = coll.material;
         }
+        if(col.collider.tag == "EndLevel")
+        {
+            EditorSceneManager.LoadScene(m_currentScene + 1);
+        }
     
     }
 
@@ -59,6 +68,14 @@ public class CharacterController : MonoBehaviour {
         float initVelocity = m_maxSpeed - Acc;
 
         m_flatVelocity = initVelocity;
+    }
+
+    void checkForDeathOrReset()
+    {
+        if (m_rb.position.y < -4 || Input.GetKeyDown(KeyCode.R))
+        {
+            EditorSceneManager.LoadScene(m_currentScene);
+        }
     }
 
     public void MovePlayer(float xAxis, bool isJumping)
