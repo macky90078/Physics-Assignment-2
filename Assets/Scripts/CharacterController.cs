@@ -8,7 +8,7 @@ public class CharacterController : MonoBehaviour {
     public float m_maxSpeed = 10.0f;
     public float m_maxJump = 7.0f;
 
-    public Vector3 m_check;
+    public Vector3 m_checkVelocity;
 
     private float m_flatVelocity;
     private float m_grav;
@@ -56,7 +56,7 @@ public class CharacterController : MonoBehaviour {
         float fNorm = m_rb.mass * m_grav;
         float fDynamic = fNorm * m_material.dynamicFriction;
         float Acc = (fDynamic / m_rb.mass);
-        float initVelocity = m_maxSpeed - (Acc * Time.fixedDeltaTime);
+        float initVelocity = m_maxSpeed - Acc;
 
         m_flatVelocity = initVelocity;
     }
@@ -81,7 +81,7 @@ public class CharacterController : MonoBehaviour {
         }
 
         m_rb.velocity = moveVelocity;
-        m_check = moveVelocity;
+        m_checkVelocity = moveVelocity;
     }
 }
 
