@@ -4,8 +4,16 @@ using System.Collections;
 public class CharacterController : MonoBehaviour {
 
 	private Rigidbody m_rb = null;
-    public Vector3 m_maxSpeed = new Vector3(1.0f, 5.0f, 0.0f);
+    public PhysicMaterial m_material;
+    public float m_maxSpeed = 10.0f;
+    public float m_maxJump = 7.0f;
 
+    public Vector3 m_check;
+
+    private float m_flatVelocity;
+    private float m_grav;
+    private float m_horizontal;
+    private bool m_isJumping;
     private bool m_isConnected = false;
     public bool IsConnected
     {
@@ -16,12 +24,45 @@ public class CharacterController : MonoBehaviour {
     // Use this for initialization
     void Start () {
 		m_rb = GetComponent<Rigidbody> ();
-
+        m_grav = Physics.gravity.magnitude;
 
 	}
 
-	public void MovePlayer (float xAxis, bool isJumping)
-	{
+    // Update is called once per frame
+    void Update () {
+
+		m_horizontal = Input.GetAxis ("Horizontal");
+        m_isJumping = Input.GetKeyDown(KeyCode.Space);
+	}
+
+    void FixedUpdate()
+    {
+        CalculateFlatMovement();
+        MovePlayer(m_horizontal, m_isJumping);
+    }
+
+    void OnCollisionEnter(Collision col)
+    {
+        Collider coll = col.gameObject.GetComponent<Collider>();
+        if (coll)
+        {
+            m_material = coll.material;
+        }
+    
+    }
+
+    void CalculateFlatMovement()
+    {
+        float fNorm = m_rb.mass * m_grav;
+        float fDynamic = fNorm * m_material.dynamicFriction;
+        float Acc = (fDynamic / m_rb.mass);
+        float initVelocity = m_maxSpeed - (Acc * Time.fixedDeltaTime);
+
+        m_flatVelocity = initVelocity;
+    }
+
+    public void MovePlayer(float xAxis, bool isJumping)
+    {
         if (m_isConnected)
         {
             //early exit 
@@ -29,24 +70,19 @@ public class CharacterController : MonoBehaviour {
         }
 
         Vector3 moveVelocity = Vector3.zero;
-        Vector3 xMovement = (xAxis * m_maxSpeed.x * transform.right);
-        moveVelocity = xMovement;
+        float xMovement = (xAxis * m_flatVelocity);
 
+        moveVelocity.x = xMovement;
         moveVelocity.y = m_rb.velocity.y;
-        if (isJumping && (Mathf.Abs(m_rb.velocity.y) < 0.0001f))
+
+        if (isJumping && (Mathf.Abs(m_rb.velocity.y) < 0.0001))
         {
-            moveVelocity.y = m_maxSpeed.y;
+            moveVelocity.y = m_maxJump;
         }
+
         m_rb.velocity = moveVelocity;
+        m_check = moveVelocity;
     }
-
-    // Update is called once per frame
-    void Update () {
-
-		float horizontal = Input.GetAxis ("Horizontal");
-        bool isJumping = Input.GetKeyDown(KeyCode.Space);
-		MovePlayer (horizontal, isJumping);
-	}
 }
 
 
