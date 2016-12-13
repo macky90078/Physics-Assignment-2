@@ -4,17 +4,52 @@ using UnityEngine;
 
 public class SpringLift : MonoBehaviour {
 
+    public float m_compressDisplacement = 3.0f;
+    public float m_timer = 13;
+
+    private float m_riseForce;
     private GameObject m_hook;
     private SpringJoint m_springJoint;
-    private Vector3 m_savePos;
     private Rigidbody m_collidingRb;
 
-    public bool m_isPlayerConnected = false;
+    private bool m_isPlayerConnected = false;
+
+    void Start()
+    {
+        m_springJoint = GetComponent<SpringJoint>();
+        m_hook = m_springJoint.connectedBody.gameObject;
+        m_riseForce = CalculateRiseForce();
+    }
+
+    void Update()
+    {
+        if (m_isPlayerConnected)
+        {
+            m_timer -= Time.deltaTime;
+
+            if (m_timer > 0)
+            {
+                m_collidingRb.AddForce(m_riseForce * m_hook.transform.up);
+                transform.Translate(Vector3.right * Time.deltaTime);
+            } else { m_timer = 0.0f; }
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                OnDisconnect();
+
+            }
+        }
+
+    }
+
+    private float CalculateRiseForce()
+    {
+        return m_springJoint.spring * m_compressDisplacement;
+    }
 
     void OnTriggerEnter(Collider col)
     {
         m_collidingRb = col.gameObject.GetComponent<Rigidbody>();
-
         if (m_collidingRb)
         {
 
@@ -45,30 +80,6 @@ public class SpringLift : MonoBehaviour {
             controller.IsConnected = false;
             m_isPlayerConnected = false;
         }
-    }
-
-    // Use this for initialization
-    void Start()
-    {
-        m_springJoint = GetComponent<SpringJoint>();
-        m_hook = m_springJoint.connectedBody.gameObject;
-        m_savePos = m_hook.transform.position;
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        if (m_isPlayerConnected)
-        {
-            m_collidingRb.AddForce(30 * m_hook.transform.up);
-            if (Input.GetKeyDown(KeyCode.Space))
-            {
-                OnDisconnect();
-                m_hook.transform.position = m_savePos;
-
-            }
-        }
-
     }
 }
 
