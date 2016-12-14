@@ -16,38 +16,26 @@ public class Launch : MonoBehaviour {
 
     void OnEnable() {
         m_rb = GetComponent<Rigidbody>();
-        Vector3 ourPos = GetOffsetPosition(this.transform, true);
-        Vector3 refPos = GetOffsetPosition(m_referenceTransform, false);
-        m_desiredDisplacement = refPos - ourPos;
-        LaunchProjectile();
+        CalcuateDesiredDisplacement();
     }
 
     Vector3 GetOffsetPosition(Transform refTransform, bool isBottom) {
         return isBottom ? refTransform.position - (new Vector3(0.0f, refTransform.localScale.y, 0.0f) * 0.5f) : refTransform.position + (new Vector3(0.0f, refTransform.localScale.y, 0.0f) * 0.5f);
     }
 
-    // Update is called once per frame
-    //void Update() {
-    //    if (Input.GetKeyDown(KeyCode.Space)) {
-    //        LaunchProjectile();
-    //    }
+    public void LaunchProjectile() {
+        CalcuateDesiredDisplacement();
 
-    //    float axis = Input.GetAxis("Horizontal");
-    //    //check if there is movement on the horzintal axis
-    //    if (Mathf.Abs(axis) > Mathf.Epsilon) {
-    //        //clamp the value to be either 1 or -1 we don't want fractions
-    //        axis = axis > Mathf.Epsilon ? 1.0f : -1.0f;
-    //        //right is the x axis, if you are moving on the z axis use forward
-    //        Vector3 force = m_acceleration * m_rb.mass * this.transform.right * axis;
-    //        m_rb.AddForce(force);
-    //    }
-    //}
-
-    void LaunchProjectile() {
         m_force.y = CalculateYImpulse(m_desiredDisplacement.y, m_time);
-        m_force.x = (m_desiredDisplacement.x / m_time) * m_rb.mass;
+        m_force.z = (m_desiredDisplacement.z / m_time) * m_rb.mass;
         m_rb.AddForce(m_force / Time.fixedDeltaTime);
         m_force = Vector3.zero;
+    }
+
+    void CalcuateDesiredDisplacement() {
+        Vector3 ourPos = GetOffsetPosition(this.transform, true);
+        Vector3 refPos = GetOffsetPosition(m_referenceTransform, false);
+        m_desiredDisplacement = refPos - ourPos;
     }
 
     float CalculateYImpulse(float displacement, float time) {

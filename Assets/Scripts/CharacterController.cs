@@ -22,7 +22,7 @@ public class CharacterController : MonoBehaviour {
     public float m_applyForce;
 
     private bool m_onRamp = false;
-    private bool m_isJumping;
+    private bool m_isJumping = false;
     private bool m_isConnected = false;
     public bool IsConnected
     {
@@ -31,6 +31,9 @@ public class CharacterController : MonoBehaviour {
     }
 
     public bool b_verticalMovement;
+    private Launch m_Launch;
+    private bool b_inCannon = false;
+    private GameObject m_cannon;
 
     // Use this for initialization
     void Start ()
@@ -38,17 +41,21 @@ public class CharacterController : MonoBehaviour {
         m_currentScene = SceneManager.GetActiveScene().buildIndex;
 		m_rb = GetComponent<Rigidbody> ();
         m_grav = Physics.gravity.magnitude;
+        m_Launch = GetComponent<Launch>();
 	}
 
     // Update is called once per frame
     void Update ()
     {
-
-    	if (!b_verticalMovement) {
-    		m_horizontal = Input.GetAxis("Horizontal");
-    	} else if (b_verticalMovement) {
-    		m_horizontal = Input.GetAxis("Vertical");
-    	}
+        if (!b_inCannon) {
+            if (!b_verticalMovement) {
+                m_horizontal = Input.GetAxis("Horizontal");
+            } else if (b_verticalMovement) {
+                m_horizontal = Input.GetAxis("Vertical");
+            }
+        } else if (b_inCannon) {
+            m_horizontal = Input.GetAxis("Vertical");
+        }
 
         m_isJumping = Input.GetKeyDown(KeyCode.Space);
         checkForDeathOrReset();
@@ -57,7 +64,11 @@ public class CharacterController : MonoBehaviour {
     void FixedUpdate()
     {
         CalculateFlatMovement();
-        MovePlayer(m_horizontal, m_isJumping);
+        if (!b_inCannon) {
+            MovePlayer(m_horizontal, m_isJumping);
+        } else if (b_inCannon) {
+            MoveCannon(m_horizontal, m_isJumping);
+        }
         if (m_onRamp)
         {
             m_rb.velocity += new Vector3(m_applyForce, 0.0f, 0.0f);
@@ -83,7 +94,24 @@ public class CharacterController : MonoBehaviour {
             CalculateRampMovement();
             m_onRamp = true;
         } else { m_onRamp = false; }
-       
+        if (col.collider.tag == "Level1") {
+            col.gameObject.transform.GetChild(1).gameObject.SetActive(true);
+            StartCoroutine(LoadScene(col.collider.tag));
+        }
+        if (col.collider.tag == "Level2") {
+            col.gameObject.transform.GetChild(1).gameObject.SetActive(true);
+            StartCoroutine(LoadScene(col.collider.tag));
+        }
+    }
+
+    void OnTriggerEnter(Collider col) {
+        if (col.GetComponent<Collider>().tag == "Cannon") {
+            m_rb.velocity = Vector3.zero;
+            m_Launch.enabled = true;
+            b_inCannon = true;
+            m_cannon = col.transform.parent.gameObject;
+            transform.position = m_cannon.transform.position;
+        }
     }
 
     void CalculateFlatMovement()
@@ -145,6 +173,21 @@ public class CharacterController : MonoBehaviour {
 
         m_rb.velocity = moveVelocity;
         m_checkVelocity = moveVelocity;
+    }
+
+    private void MoveCannon(float Axis, bool launch) {
+        if (launch) {
+            m_Launch.LaunchProjectile();
+        }
+
+        m_cannon.transform.Rotate(-Axis, 0, 0);
+        Vector3 newPos = new Vector3(0, 0, Axis);
+        m_Launch.m_referenceTransform.transform.position += newPos;
+    }
+
+    private IEnumerator LoadScene(string sceneName) {
+        yield return new WaitForSeconds(3f);
+        SceneManager.LoadScene(sceneName);
     }
 }
 
