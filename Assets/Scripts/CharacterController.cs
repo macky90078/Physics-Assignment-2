@@ -54,7 +54,14 @@ public class CharacterController : MonoBehaviour {
                 m_horizontal = Input.GetAxis("Vertical");
             }
         } else if (b_inCannon) {
-            m_horizontal = Input.GetAxis("Vertical");
+            if (b_verticalMovement)
+            {
+                m_horizontal = Input.GetAxis("Vertical");
+            }
+            else
+            {
+                m_horizontal = Input.GetAxis("Horizontal");
+            }
         }
 
         m_isJumping = Input.GetKeyDown(KeyCode.Space);
@@ -84,7 +91,13 @@ public class CharacterController : MonoBehaviour {
         }
         if(col.collider.tag == "EndLevel")
         {
-            SceneManager.LoadScene(m_currentScene + 1);
+            if (SceneManager.GetActiveScene().buildIndex + 1 > 3)
+            {
+                SceneManager.LoadScene(0);
+            } else
+            {
+                SceneManager.LoadScene(m_currentScene + 1);
+            }
         }
         if (col.collider.tag == "Ramp")
         {
@@ -177,11 +190,19 @@ public class CharacterController : MonoBehaviour {
 
     private void MoveCannon(float Axis, bool launch) {
         if (launch) {
-            m_Launch.LaunchProjectile();
+            m_Launch.LaunchProjectile(b_verticalMovement);
         }
 
         m_cannon.transform.Rotate(-Axis, 0, 0);
-        Vector3 newPos = new Vector3(0, 0, Axis);
+        Vector3 newPos = Vector3.zero;
+        if (b_verticalMovement)
+        {
+            newPos = new Vector3(0, 0, Axis);
+        } else if (!b_verticalMovement)
+        {
+            newPos = new Vector3(Axis, 0, 0);
+        }
+        
         m_Launch.m_referenceTransform.transform.position += newPos;
     }
 

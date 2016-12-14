@@ -23,11 +23,18 @@ public class Launch : MonoBehaviour {
         return isBottom ? refTransform.position - (new Vector3(0.0f, refTransform.localScale.y, 0.0f) * 0.5f) : refTransform.position + (new Vector3(0.0f, refTransform.localScale.y, 0.0f) * 0.5f);
     }
 
-    public void LaunchProjectile() {
+    public void LaunchProjectile(bool direction) {
         CalcuateDesiredDisplacement();
 
         m_force.y = CalculateYImpulse(m_desiredDisplacement.y, m_time);
-        m_force.z = (m_desiredDisplacement.z / m_time) * m_rb.mass;
+        if (direction)
+        {
+            m_force.z = (m_desiredDisplacement.z / m_time) * m_rb.mass;
+        } else if (!direction)
+        {
+            m_force.x = (m_desiredDisplacement.x / m_time) * m_rb.mass;
+        }
+        
         m_rb.AddForce(m_force / Time.fixedDeltaTime);
         m_force = Vector3.zero;
     }
