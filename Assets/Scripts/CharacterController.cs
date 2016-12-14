@@ -8,13 +8,20 @@ public class CharacterController : MonoBehaviour {
     public PhysicMaterial m_material;
     public float m_maxSpeed = 10.0f;
     public float m_maxJump = 7.0f;
+    public float desiredRampLaunchDist = 10.0f;
 
     public Vector3 m_checkVelocity;
+    public Vector3 m_rampDirection;
 
     private int m_currentScene;
+
+    private float m_distance;
     private float m_flatVelocity;
     private float m_grav;
     private float m_horizontal;
+    public float m_applyForce;
+
+    private bool m_onRamp = false;
     private bool m_isJumping;
     private bool m_isConnected = false;
     public bool IsConnected
@@ -44,6 +51,10 @@ public class CharacterController : MonoBehaviour {
     {
         CalculateFlatMovement();
         MovePlayer(m_horizontal, m_isJumping);
+        if (m_onRamp)
+        {
+            m_rb.velocity += new Vector3(m_applyForce, 0.0f, 0.0f);
+        }
     }
 
     void OnCollisionEnter(Collision col)
@@ -57,7 +68,15 @@ public class CharacterController : MonoBehaviour {
         {
             EditorSceneManager.LoadScene(m_currentScene + 1);
         }
-    
+        if (col.collider.tag == "Ramp")
+        {
+            m_rampDirection = col.transform.rotation.eulerAngles;
+            float landingSpot = transform.position.x + desiredRampLaunchDist;
+            m_distance = landingSpot - (transform.position.x);
+            CalculateRampMovement();
+            m_onRamp = true;
+        } else { m_onRamp = false; }
+       
     }
 
     void CalculateFlatMovement()
@@ -68,6 +87,21 @@ public class CharacterController : MonoBehaviour {
         float initVelocity = m_maxSpeed - Acc;
 
         m_flatVelocity = initVelocity;
+    }
+
+    void CalculateRampMovement()
+    {
+        int finalVelocity = 0;
+
+        float theta = m_rampDirection.z * Mathf.Deg2Rad;
+        float fGrav = m_rb.mass * Physics.gravity.y * Mathf.Sin(theta);
+        float fNorm = m_rb.mass * Physics.gravity.y * Mathf.Cos(theta);
+        float fDynamic = fNorm * m_material.dynamicFriction;
+        float fNet = fGrav + fDynamic;
+        float fAcc = fNet / m_rb.mass;
+        float initVelocity = Mathf.Sqrt(finalVelocity - (2 * fAcc * m_distance));
+
+        m_applyForce = initVelocity;
     }
 
     void checkForDeathOrReset()
