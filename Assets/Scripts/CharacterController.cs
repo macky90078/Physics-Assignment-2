@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
-using UnityEditor.SceneManagement;
+using UnityEngine.SceneManagement;
 
 public class CharacterController : MonoBehaviour {
 
@@ -30,10 +30,12 @@ public class CharacterController : MonoBehaviour {
         get { return m_isConnected; }
     }
 
+    public bool b_verticalMovement;
+
     // Use this for initialization
     void Start ()
     {
-        m_currentScene = EditorSceneManager.GetActiveScene().buildIndex;
+        m_currentScene = SceneManager.GetActiveScene().buildIndex;
 		m_rb = GetComponent<Rigidbody> ();
         m_grav = Physics.gravity.magnitude;
 	}
@@ -42,7 +44,12 @@ public class CharacterController : MonoBehaviour {
     void Update ()
     {
 
-		m_horizontal = Input.GetAxis ("Horizontal");
+    	if (!b_verticalMovement) {
+    		m_horizontal = Input.GetAxis("Horizontal");
+    	} else if (b_verticalMovement) {
+    		m_horizontal = Input.GetAxis("Vertical");
+    	}
+
         m_isJumping = Input.GetKeyDown(KeyCode.Space);
         checkForDeathOrReset();
 	}
@@ -66,7 +73,7 @@ public class CharacterController : MonoBehaviour {
         }
         if(col.collider.tag == "EndLevel")
         {
-            EditorSceneManager.LoadScene(m_currentScene + 1);
+            SceneManager.LoadScene(m_currentScene + 1);
         }
         if (col.collider.tag == "Ramp")
         {
@@ -108,7 +115,7 @@ public class CharacterController : MonoBehaviour {
     {
         if (m_rb.position.y < -4 || Input.GetKeyDown(KeyCode.R))
         {
-            EditorSceneManager.LoadScene(m_currentScene);
+            SceneManager.LoadScene(m_currentScene);
         }
     }
 
@@ -123,7 +130,12 @@ public class CharacterController : MonoBehaviour {
         Vector3 moveVelocity = Vector3.zero;
         float xMovement = (xAxis * m_flatVelocity);
 
-        moveVelocity.x = xMovement;
+        if (!b_verticalMovement) {
+			moveVelocity.x = xMovement;
+        } else {
+        	moveVelocity.z = xMovement;
+        }
+
         moveVelocity.y = m_rb.velocity.y;
 
         if (isJumping && (Mathf.Abs(m_rb.velocity.y) < 0.0001))
