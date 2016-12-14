@@ -21,6 +21,7 @@ public class CharacterController : MonoBehaviour {
     private float m_horizontal;
     public float m_applyForce;
 
+    private bool m_onRamp = false;
     private bool m_isJumping;
     private bool m_isConnected = false;
     public bool IsConnected
@@ -50,6 +51,10 @@ public class CharacterController : MonoBehaviour {
     {
         CalculateFlatMovement();
         MovePlayer(m_horizontal, m_isJumping);
+        if (m_onRamp)
+        {
+            m_rb.velocity += new Vector3(m_applyForce, 0.0f, 0.0f);
+        }
     }
 
     void OnCollisionEnter(Collision col)
@@ -69,9 +74,8 @@ public class CharacterController : MonoBehaviour {
             float landingSpot = transform.position.x + desiredRampLaunchDist;
             m_distance = landingSpot - (transform.position.x);
             CalculateRampMovement();
-
-            m_rb.velocity = new Vector3(m_applyForce, 0.0f, 0.0f);
-        }
+            m_onRamp = true;
+        } else { m_onRamp = false; }
        
     }
 
@@ -90,8 +94,8 @@ public class CharacterController : MonoBehaviour {
         int finalVelocity = 0;
 
         float theta = m_rampDirection.z * Mathf.Deg2Rad;
-        float fGrav = m_rb.mass * (-9.8f) * Mathf.Sin(theta);
-        float fNorm = m_rb.mass * (-9.8f) * Mathf.Cos(theta);
+        float fGrav = m_rb.mass * Physics.gravity.y * Mathf.Sin(theta);
+        float fNorm = m_rb.mass * Physics.gravity.y * Mathf.Cos(theta);
         float fDynamic = fNorm * m_material.dynamicFriction;
         float fNet = fGrav + fDynamic;
         float fAcc = fNet / m_rb.mass;
