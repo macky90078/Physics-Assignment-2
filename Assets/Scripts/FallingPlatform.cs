@@ -8,7 +8,7 @@ public class FallingPlatform : MonoBehaviour {
     private Rigidbody m_CollidingRb;
 
     private float m_timer = 1f;
-    private float m_appledForce = 30f;
+    public float m_appliedForce = 30f;
 
     private bool m_timerDone = false;
     private bool m_playerCollision = false;
@@ -36,7 +36,7 @@ public class FallingPlatform : MonoBehaviour {
     {
         if(m_playerCollision)
         {
-            m_rb.AddForce(transform.up * m_appledForce);
+            m_rb.AddForce(transform.up * m_appliedForce);
         } 
         if(!m_playerCollision)
         {
@@ -55,7 +55,7 @@ public class FallingPlatform : MonoBehaviour {
         {
             m_CollidingRb = col.gameObject.GetComponent<Rigidbody>();
             float totalMass = m_rb.mass + m_CollidingRb.mass;
-            m_appledForce += totalMass * Physics.gravity.magnitude;
+            m_appliedForce += totalMass * Physics.gravity.magnitude;
             m_playerCollision = true;
         }
     }

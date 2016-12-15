@@ -15,12 +15,14 @@ public class CharacterController : MonoBehaviour {
 
     private int m_currentScene;
 
+    private float m_FallingExtraForce;
     private float m_distance;
     private float m_flatVelocity;
     private float m_grav;
     private float m_horizontal;
     public float m_applyForce;
 
+    private bool m_onFalling = false;
     private bool m_onRamp = false;
     private bool m_isJumping = false;
     private bool m_isConnected = false;
@@ -84,11 +86,21 @@ public class CharacterController : MonoBehaviour {
 
     void OnCollisionEnter(Collision col)
     {
+        m_isJumping = false;
         Collider coll = col.gameObject.GetComponent<Collider>();
         if (coll)
         {
             m_material = coll.material;
         }
+        if(col.collider.tag == "FallingPlat")
+        {
+            FallingPlatform platform = col.gameObject.GetComponent<FallingPlatform>();
+            if(platform)
+            {
+                m_FallingExtraForce = platform.m_appliedForce;
+                m_onFalling = true;
+            }
+        } else { m_onFalling = false; }
         if(col.collider.tag == "EndLevel")
         {
             if (SceneManager.GetActiveScene().buildIndex + 1 > 3)
@@ -178,6 +190,10 @@ public class CharacterController : MonoBehaviour {
         if (isJumping && (Mathf.Abs(m_rb.velocity.y) < 0.0001))
         {
             moveVelocity.y = m_maxJump;
+            if(m_onFalling)
+            {
+                moveVelocity.y = m_maxJump + m_FallingExtraForce;
+            }
         }
 
         m_rb.velocity = moveVelocity;
