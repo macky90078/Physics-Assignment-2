@@ -22,7 +22,7 @@ public class SpiningPlatform : MonoBehaviour {
         {
             m_camera = m_collidingRb.transform.GetChild(0);
             m_camera.parent = null;
-            Vector3 yOffset = new Vector3(0.0f, 1.0f, 0.0f);
+            Vector3 yOffset = new Vector3(0.2f, 1.0f, 0.0f);
             m_collidingRb.isKinematic = true;
             m_collidingRb.transform.position = m_platform.transform.position + yOffset;
             m_collidingRb.transform.SetParent(m_platform.transform);
@@ -59,7 +59,7 @@ public class SpiningPlatform : MonoBehaviour {
 
     void FixedUpdate()
     {
-        float vertical =  m_rotationAmount * Time.fixedDeltaTime;
+        float vertical =  m_rotationAmount;
         m_platformRb.AddTorque(transform.forward * -vertical);
     }
 	
