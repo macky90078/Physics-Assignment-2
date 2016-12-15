@@ -107,11 +107,7 @@ public class CharacterController : MonoBehaviour {
             CalculateRampMovement();
             m_onRamp = true;
         } else { m_onRamp = false; }
-        if (col.collider.tag == "Level1") {
-            col.gameObject.transform.GetChild(1).gameObject.SetActive(true);
-            StartCoroutine(LoadScene(col.collider.tag));
-        }
-        if (col.collider.tag == "Level2") {
+        if (col.collider.tag == "Level1" || col.collider.tag == "Level2") {
             col.gameObject.transform.GetChild(1).gameObject.SetActive(true);
             StartCoroutine(LoadScene(col.collider.tag));
         }
